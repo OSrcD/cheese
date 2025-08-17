@@ -16,11 +16,15 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url = uri("https://jitpack.io") }
+        maven {
+            url = uri("https://jitpack.io")
+            credentials.username = "jp_igfk253gp5jchk65a8l31r98m4"}
         maven { setUrl("https://developer.huawei.com/repo/") }
         maven { setUrl("https://repo1.maven.org/maven2/") }
     }
 }
+
+
 
 rootProject.name = "cheese"
 include(":app:debug")

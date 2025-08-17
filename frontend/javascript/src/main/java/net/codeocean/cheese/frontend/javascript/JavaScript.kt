@@ -120,6 +120,8 @@ class JavaScript(
         }
 
         try {
+            XLog.i("path.WORKING_DIRECTORY.path:${path.WORKING_DIRECTORY.path}/node_modules")
+            XLog.i("path.JS_DIRECTORY.path:" + path.JS_DIRECTORY.path)
             val globalScope = Global(context).apply {
                 installRequire(
                     context,
@@ -130,6 +132,7 @@ class JavaScript(
                     false
                 )
             }
+            XLog.i("globalScope" + globalScope)
             ScriptableObject.putProperty(globalScope, "error", CoreEnv.error)
             val moduleScope = ModuleScope(
                 globalScope,
@@ -141,6 +144,8 @@ class JavaScript(
 
             logTaskStart()
             evaluateInitScript(context, moduleScope)
+            XLog.i("jsCode:" + jsCode)
+            XLog.i("jsMainScriptPath:" + jsMainScriptPath)
 
             context.evaluateString(moduleScope, jsCode, jsMainScriptPath, 1, null)
 

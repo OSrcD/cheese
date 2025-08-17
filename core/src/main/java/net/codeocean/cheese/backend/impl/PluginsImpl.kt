@@ -27,15 +27,18 @@ class PluginsImpl() : Plugins, BaseEnv {
     override fun install(path: String): Boolean = runBlocking {
         pkg = extractPackageName(path).toString()
         var pluginsPath:File
-        if (!getCachePath(pkg).exists()) {
-            makeAppPath(pkg, path)
-            extractLibsFromApk(path, getAppLibPath(pkg).toString())
-            pluginsPath =File(getCachePath(pkg),"base.apk")
-            File (path).copyTo(pluginsPath)
-            pluginsPath=getCachePath(pkg)
-        }else{
-            pluginsPath =File(path)
-        }
+//        if (!getCachePath(pkg).exists()) {
+//            makeAppPath(pkg, path)
+//            extractLibsFromApk(path, getAppLibPath(pkg).toString())
+//            pluginsPath =File(getCachePath(pkg),"base.apk")
+//            File (path).copyTo(pluginsPath)
+//            pluginsPath=getCachePath(pkg)
+//        }else{
+//            pluginsPath =File(path)
+//        }
+
+        pluginsPath =File(path)
+
 
         val deferredRes = async { loadRes(pluginsPath.absolutePath) }
         val deferredDex = async {
@@ -96,9 +99,15 @@ class PluginsImpl() : Plugins, BaseEnv {
     }
 
     private fun getAppLibPath(pkg: String): File {
+        val appPath = CoreFactory.getPersistentStore().get("app", pkg)
+        val pathString = when(appPath) {
+            is String -> appPath
+            is ByteArray -> String(appPath)
+            else -> "${pkg}_unknown"
+        }
         val path = File(
             APP_DIRECTORY,
-            File(File(CoreFactory.getPersistentStore().get("app", pkg) as String), "lib").path
+            File(File(pathString), "lib").path
         ).path
         net.codeocean.cheese.core.utils.FilesUtils.create(path)
         return File(path)
@@ -106,13 +115,20 @@ class PluginsImpl() : Plugins, BaseEnv {
 
     private fun makeAppPath(pkg: String, path: String): File {
         val sha256 = CoreFactory.getAPP().getApkSha256(path)
-        val appPath = (CoreFactory.getPersistentStore().get("app", pkg))
+        val appPath = CoreFactory.getPersistentStore().get("app", pkg)
         if (appPath == null) {
             println("创建App缓存路径")
-            CoreFactory.getPersistentStore().save("app", pkg, "${pkg}_${sha256}")
-            return File(APP_DIRECTORY, appPath.toString())
+            val pathString = "${pkg}_${sha256}" 
+            CoreFactory.getPersistentStore().save("app", pkg, pathString)
+            return File(APP_DIRECTORY, pathString)
         }
-        return File(APP_DIRECTORY, "${pkg}_${sha256}")
+        // 处理ByteArray和String两种可能的类型
+        val pathString = when(appPath) {
+            is String -> appPath
+            is ByteArray -> String(appPath)
+            else -> "${pkg}_${sha256}" // 默认情况
+        }
+        return File(APP_DIRECTORY, pathString)
     }
 
     private fun extractLibsFromApk(apkFilePath: String, destinationFolderPath: String) {
@@ -146,7 +162,13 @@ class PluginsImpl() : Plugins, BaseEnv {
         private val APP_DIRECTORY: File = File(DATA_DIRECTORY, "app")
         val mDexClassLoaders: MutableMap<String, DexClassLoader> = HashMap()
         fun getCachePath(pkg: String): File {
-            return File(APP_DIRECTORY, CoreFactory.getPersistentStore().get("app", pkg).toString())
+            val appPath = CoreFactory.getPersistentStore().get("app", pkg)
+            val pathString = when(appPath) {
+                is String -> appPath
+                is ByteArray -> String(appPath)
+                else -> null
+            } ?: return File(APP_DIRECTORY, "${pkg}_unknown")
+            return File(APP_DIRECTORY, pathString)
         }
     }
 

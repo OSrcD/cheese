@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.elvishew.xlog.XLog
+import com.hjq.toast.Toaster
 import net.codeocean.cheese.backend.impl.PathImpl
 import net.codeocean.cheese.core.CoreEnv
 import net.codeocean.cheese.core.CoreFactory
@@ -32,12 +33,14 @@ object ScriptExecutionController {
     }
 
     fun runRelease(script: Script) {
-        XLog.i("开始运行")
+        XLog.i("开始运行1")
 
 
 
         thread {
             if (CoreEnv.isFirstLaunch()) {
+                XLog.i("正在加载JS依赖文件")
+                Toaster.show("正在加载JS依赖文件")
                 AssetsUtils.copyFileToSD(
                     CoreEnv.envContext.context,
                     "release.zip",
@@ -47,6 +50,8 @@ object ScriptExecutionController {
                     "${PathImpl.WORKING_DIRECTORY.path}/release.zip",
                     PathImpl.WORKING_DIRECTORY.path, ""
                 )
+                Toaster.show("JS依赖文件加载完毕")
+                XLog.i("JS依赖文件加载完毕")
             }
         }
 
@@ -58,7 +63,6 @@ object ScriptExecutionController {
                 if (CoreEnv.executorMap.cancelAndClean("run")) {
                     val executor = DebugController.createNamedThreadPool()
                     CoreEnv.executorMap["run"] = executor.submit {
-
                         script.run()
                     }
                 }
@@ -71,7 +75,6 @@ object ScriptExecutionController {
         val filter = IntentFilter("webview.loaded")
         LocalBroadcastManager.getInstance(CoreEnv.envContext.context)
             .registerReceiver(broadcastReceiver, filter)
-
 
     }
 

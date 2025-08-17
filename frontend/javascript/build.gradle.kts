@@ -36,8 +36,8 @@ dependencies {
     implementation(fileTree(file("libs")) {
         include("*.jar")
         include("*.aar")
+        exclude("rhino-all-1.7.16-SNAPSHOT.jar")
     })
-
     api (project(":core"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
