@@ -566,35 +566,44 @@ void convertJObjectArrayToCharArray(JNIEnv* env, jobjectArray stringArray, const
 
 // 将 Android Bitmap 转换为 OpenCV Mat
 cv::Mat bitmapToMat(JNIEnv* env, jobject bitmap) {
+    LOGE("Bitmap 1");
     AndroidBitmapInfo info;
+    LOGE("Bitmap 2");
     void* pixels = nullptr;
+    LOGE("Bitmap 3");
 
     // 获取 Bitmap 信息
     int ret = AndroidBitmap_getInfo(env, bitmap, &info);
-    if (ret < 0) {
+    LOGE("Bitmap 4");
+    if (ret < 0 || info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) {
+        __android_log_print(ANDROID_LOG_ERROR, "NcnnYolov8", "Unsupported Bitmap format");
         __android_log_print(ANDROID_LOG_ERROR, "NcnnYolov8", "Failed to get bitmap info");
         return cv::Mat();
     }
+    LOGE("Bitmap 5");
 
     // 创建 OpenCV Mat，行列数据和宽高对应
     cv::Mat mat(info.height, info.width, CV_8UC4); // Assuming ARGB_8888
-
+    LOGE("Bitmap 6");
     // 锁定 Bitmap，获取像素数据
     ret = AndroidBitmap_lockPixels(env, bitmap, &pixels);
+    LOGE("Bitmap 7");
     if (ret < 0) {
         __android_log_print(ANDROID_LOG_ERROR, "NcnnYolov8", "Failed to lock bitmap pixels");
         return cv::Mat();
     }
+    LOGE("Bitmap 8");
 
     // 将像素数据从 Bitmap 复制到 OpenCV Mat
     memcpy(mat.data, pixels, info.height * info.stride);
-
+    LOGE("Bitmap 9");
     // 解锁 Bitmap
     AndroidBitmap_unlockPixels(env, bitmap);
+    LOGE("Bitmap 10");
 
     // 转换为 BGR 格式（如果需要）
-    cv::cvtColor(mat, mat, cv::COLOR_RGBA2BGR);
-
+//    cv::cvtColor(mat, mat, cv::COLOR_RGBA2BGR);
+    LOGE("Bitmap 11");
     return mat;
 }
 
