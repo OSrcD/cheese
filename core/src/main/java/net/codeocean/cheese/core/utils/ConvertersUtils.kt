@@ -79,7 +79,7 @@ object ConvertersUtils {
     }
     fun bitmapToBase64(bitmap: Bitmap): String? {
         return try {
-            Base64.encodeToString(bitmapToByteArray(bitmap), Base64.DEFAULT)
+            Base64.encodeToString(bitmapToByteArray(bitmap), Base64.NO_WRAP)
         } catch (e: Exception) {
             e.printStackTrace()
             null
