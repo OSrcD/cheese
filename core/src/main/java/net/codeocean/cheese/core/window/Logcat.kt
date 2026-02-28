@@ -186,7 +186,8 @@ class Logcat(private val baseEnv: CoreEnv.EnvContext, private val console: Conso
                     }
 
                     msg.contains(" I ") -> { // 信息日志
-                        setTextColor(Color.BLUE)
+                        setTextColor(Color.GREEN)
+                        setTypeface(typeface, Typeface.BOLD)
                     }
 
                     msg.contains(" D ") -> { // 调试日志
@@ -202,7 +203,7 @@ class Logcat(private val baseEnv: CoreEnv.EnvContext, private val console: Conso
                 append("\n$msg\n")
 
                 // 滚动到最新一行
-                post { scrollToLatestLine() }
+                // post { scrollToLatestLine() }
             }
             wm.updateViewLayout(view, layoutParams)
         }
