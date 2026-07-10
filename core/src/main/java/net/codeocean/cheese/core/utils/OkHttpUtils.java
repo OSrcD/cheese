@@ -42,6 +42,7 @@ public class OkHttpUtils {
     private String url;
     private Request.Builder request;
     private Boolean isMultipart =false;
+    private Integer customTimeoutSeconds = null;
 
     /**
      * 初始化okHttpClient，并且允许https访问
@@ -112,6 +113,18 @@ public class OkHttpUtils {
             paramMap = new LinkedHashMap<>(16);
         }
         paramMap.put(key, value);
+        return this;
+    }
+
+    /**
+     * 设置自定义超时时间（秒）
+     * 包括连接超时、读超时、写超时
+     *
+     * @param timeoutSeconds 超时时间（秒）
+     * @return
+     */
+    public OkHttpUtils timeout(int timeoutSeconds) {
+        this.customTimeoutSeconds = timeoutSeconds;
         return this;
     }
 
@@ -281,6 +294,17 @@ public class OkHttpUtils {
         return this;
     }
 
+    private OkHttpClient getCustomClient() {
+        if (customTimeoutSeconds != null) {
+            return okHttpClient.newBuilder()
+                    .connectTimeout(customTimeoutSeconds, TimeUnit.SECONDS)
+                    .readTimeout(customTimeoutSeconds, TimeUnit.SECONDS)
+                    .writeTimeout(customTimeoutSeconds, TimeUnit.SECONDS)
+                    .build();
+        }
+        return okHttpClient;
+    }
+
     /**
      * 同步请求
      *
@@ -289,7 +313,7 @@ public class OkHttpUtils {
     public String sync() {
         setHeader(request);
         try {
-            Response response = okHttpClient.newCall(request.build()).execute();
+            Response response = getCustomClient().newCall(request.build()).execute();
             assert response.body() != null;
             return response.body().string();
         } catch (IOException e) {
@@ -304,7 +328,7 @@ public class OkHttpUtils {
     public String async() {
         StringBuilder buffer = new StringBuilder("");
         setHeader(request);
-        okHttpClient.newCall(request.build()).enqueue(new Callback() {
+        getCustomClient().newCall(request.build()).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 buffer.append("请求出错：").append(e.getMessage());
@@ -332,7 +356,7 @@ public class OkHttpUtils {
      */
     public void async(ICallBack callBack) {
         setHeader(request);
-        okHttpClient.newCall(request.build()).enqueue(new Callback() {
+        getCustomClient().newCall(request.build()).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 callBack.onFailure(call, e.getMessage());
